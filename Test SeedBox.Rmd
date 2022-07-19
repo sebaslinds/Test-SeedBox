@@ -1,0 +1,108 @@
+---
+title: "Test SeedBox"
+author: "Sebastien Lindsay"
+date: "2022-07-18"
+output: html_document
+---
+## Data Preview
+
+Load the data
+
+```{r}
+testSamples <- read.csv("https://raw.githubusercontent.com/seedboxtech/datasciencetest/master/testSamples.csv")
+```
+
+```{r}
+transData <- read.csv("https://raw.githubusercontent.com/seedboxtech/datasciencetest/master/transData.csv")
+```
+
+Merge CSV files
+
+```{r}
+mergedfile <- merge(testSamples,transData,by.x = "sample_id",by.y = "sample_id")
+head(mergedfile, 10)
+```
+## Question 1
+
+What is the approximate probability distribution between the test group and the control group?
+
+###### Find Sample Size
+
+###### Groupby count of single column
+
+```{r}
+aggregate(mergedfile$test_group, by=list(mergedfile$test_group), FUN=length)
+```
+The sample size of the control group is 4050.
+The sample size of the test group is 3380.
+The total sample size is 7430.
+
+##### Find p and q
+
+```{r}
+p=4050/7430
+p
+q=1-p
+q
+```
+
+##### Find binomial distribution for 400 cancel requests
+
+```{r}
+Control_Group <- 0:400
+
+plot(Control_Group, dbinom(Control_Group, size=400, prob=p),type='h')
+```
+
+```{r}
+Test_Group <- 0:400
+
+plot(Test_Group, dbinom(Test_Group, size=400, prob=q),type='h')
+```
+
+## Question 2
+
+Is a user that must call-in to cancel more likely to generate at least 1 addition REBILL?
+
+###### Make a table of category proportions
+
+```{r}
+prop.table(table(mergedfile$transaction_type,(mergedfile$test_group)))*100
+```
+
+Yes. Based on the sample, a user that must call-in to cancel have 43,1% chance to generate at least 1 addition REBILL.
+
+## Question 3
+
+Is a user that must call-in to cancel more likely to generate more revenues?
+
+###### Total Revenue by test_group
+
+```{r}
+aggregate(x = mergedfile$transaction_amount,                # Specify data column
+          by = list(mergedfile$test_group),              # Specify group indicator
+          FUN = sum) 
+```
+Yes. Based on the sample, the Test Group is more likely to generate more revenues compare to the Control Group.
+
+## Question 4
+
+Is a user that must call-in more likely to produce a higher chargeback rate(CHARGEBACKs/REBILLs)?
+
+###### Charge back rate by test_group
+
+```{r}
+prop.table(table(mergedfile$transaction_type,(mergedfile$test_group)))*100
+```
+
+```{r}
+Control_Group = 1.4266487 /  50.5518170
+Control_Group
+Test_Group = 0.7671602 / 43.1359354
+Test_Group
+```
+
+No, 0.01778471 < 0.02822151.  Therefore, the test group is less likely to produce a higher chargeback rate compare to the control group.
+
+END
+
